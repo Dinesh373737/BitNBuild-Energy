@@ -1,0 +1,334 @@
+gridmind/
+│
+├── backend/
+│   │
+│   ├── common/                          # 🔒 SHARED FOUNDATION — DO NOT MODIFY DURING MODULE DEV
+│   │   ├── __init__.py
+│   │   ├── config.py                    #    All settings: .env loading, APP_MODE, DATABASE_URL, API keys
+│   │   ├── database.py                  #    SQLAlchemy engine, session factory, Base declarative model
+│   │   ├── init_db.py                   #    Database initialization & table creation
+│   │   │
+│   │   ├── models/                      #    All SQLAlchemy ORM models (single source of truth for DB schema)
+│   │   │   ├── __init__.py              #       Re-exports all models
+│   │   │   ├── grid_state.py            #       grid_states table
+│   │   │   ├── weather.py               #       weather_data table
+│   │   │   ├── forecast.py              #       forecasts table
+│   │   │   ├── microgrid.py             #       microgrid_states table
+│   │   │   ├── resource.py              #       resources table
+│   │   │   ├── agent.py                 #       agents + agent_decisions tables
+│   │   │   ├── market.py                #       market_orders + trades tables
+│   │   │   ├── event.py                 #       events table
+│   │   │   ├── simulation.py            #       simulation_runs table
+│   │   │   └── analytics.py             #       analytics_results table
+│   │   │
+│   │   ├── schemas/                     #    Shared Pydantic schemas & enums used across modules
+│   │   │   ├── __init__.py
+│   │   │   ├── enums.py                 #       RiskLevel, AgentType, AgentAction, ResourceAction, etc.
+│   │   │   ├── base.py                  #       Base request/response schemas, pagination, timestamps
+│   │   │   ├── microgrid_state.py       #       MicrogridState — the central shared state schema
+│   │   │   └── messages.py              #       Structured agent-to-agent message schemas
+│   │   │
+│   │   ├── events.py                    #    Event bus — publish/subscribe for inter-module communication
+│   │   ├── exceptions.py                #    Custom exception classes
+│   │   └── logger.py                    #    Centralized logging configuration
+│   │
+│   │
+│   ├── modules/                         # 🧩 ISOLATED FEATURE MODULES
+│   │   │
+│   │   ├── data_connectors/             #    MODULE 1: External Data Sources
+│   │   │   ├── __init__.py              #       (Karnataka grid + Weather API)
+│   │   │   ├── router.py               #       FastAPI routes: /api/grid, /api/weather
+│   │   │   ├── service.py              #       Business logic orchestration
+│   │   │   ├── karnataka.py            #       Karnataka grid data connector
+│   │   │   ├── weather.py              #       Open-Meteo weather connector
+│   │   │   ├── schemas.py              #       Module-specific request/response schemas
+│   │   │   └── tests/
+│   │   │       ├── __init__.py
+│   │   │       ├── test_karnataka.py
+│   │   │       └── test_weather.py
+│   │   │
+│   │   ├── ml_forecasting/              #    MODULE 2: ML Prediction Engine
+│   │   │   ├── __init__.py              #       (Demand, Solar, Wind forecasting + Uncertainty)
+│   │   │   ├── router.py               #       FastAPI routes: /api/predictions, /api/forecasts
+│   │   │   ├── service.py              #       Forecasting service orchestration
+│   │   │   ├── feature_engineering.py   #       Lag features, rolling means, time features
+│   │   │   ├── demand/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── model.py            #       Demand forecasting model (XGBoost/LightGBM)
+│   │   │   │   └── trainer.py          #       Training pipeline
+│   │   │   ├── solar/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── model.py            #       Solar generation forecast model
+│   │   │   │   └── trainer.py
+│   │   │   ├── wind/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── model.py            #       Wind generation forecast model
+│   │   │   │   └── trainer.py
+│   │   │   ├── uncertainty/
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── estimator.py        #       Prediction intervals / conformal prediction
+│   │   │   ├── schemas.py
+│   │   │   └── tests/
+│   │   │       ├── __init__.py
+│   │   │       ├── test_demand.py
+│   │   │       ├── test_solar.py
+│   │   │       ├── test_wind.py
+│   │   │       └── test_uncertainty.py
+│   │   │
+│   │   ├── simulation/                  #    MODULE 3: Simulation Engine
+│   │   │   ├── __init__.py              #       (The "world" where agents operate)
+│   │   │   ├── router.py               #       FastAPI routes: /api/simulation
+│   │   │   ├── service.py              #       Simulation orchestration
+│   │   │   ├── environment.py          #       External environment modeling
+│   │   │   ├── microgrid.py            #       Microgrid component modeling
+│   │   │   ├── state.py                #       MicrogridState management (read/write)
+│   │   │   ├── dynamics.py             #       Physics/energy balance dynamics
+│   │   │   ├── loop.py                 #       The 13-step simulation loop
+│   │   │   ├── schemas.py
+│   │   │   └── tests/
+│   │   │       ├── __init__.py
+│   │   │       ├── test_environment.py
+│   │   │       ├── test_microgrid.py
+│   │   │       ├── test_dynamics.py
+│   │   │       └── test_loop.py
+│   │   │
+│   │   ├── market_engine/               #    MODULE 4: P2P Energy Market
+│   │   │   ├── __init__.py              #       (Bidding, order matching, clearing, transactions)
+│   │   │   ├── router.py               #       FastAPI routes: /api/market
+│   │   │   ├── service.py              #       Market orchestration
+│   │   │   ├── bidding.py              #       Bid/Ask creation and validation
+│   │   │   ├── matching.py             #       Order matching algorithm
+│   │   │   ├── clearing.py             #       Clearing price calculation
+│   │   │   ├── schemas.py
+│   │   │   └── tests/
+│   │   │       ├── __init__.py
+│   │   │       ├── test_bidding.py
+│   │   │       ├── test_matching.py
+│   │   │       └── test_clearing.py
+│   │   │
+│   │   ├── safety/                      #    MODULE 5: Safety Validation Layer
+│   │   │   ├── __init__.py              #       (Deterministic — NOT an AI agent)
+│   │   │   ├── router.py               #       FastAPI routes: /api/safety
+│   │   │   ├── service.py
+│   │   │   ├── validator.py            #       Validates agent decisions against constraints
+│   │   │   ├── constraints.py          #       Energy balance, SOC limits, grid limits, etc.
+│   │   │   ├── schemas.py
+│   │   │   └── tests/
+│   │   │       ├── __init__.py
+│   │   │       ├── test_validator.py
+│   │   │       └── test_constraints.py
+│   │   │
+│   │   ├── agents/                      #    MODULE 6: All 6 AI Agents
+│   │   │   ├── __init__.py
+│   │   │   ├── router.py               #       FastAPI routes: /api/agents
+│   │   │   ├── base_agent.py           #       Abstract base class all agents inherit from
+│   │   │   ├── schemas.py              #       Agent-level shared schemas
+│   │   │   │
+│   │   │   ├── coordinator/             #       🧠 Coordinator Agent
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── agent.py            #           Orchestration + conflict resolution logic
+│   │   │   │   └── tests/
+│   │   │   │       ├── __init__.py
+│   │   │   │       └── test_coordinator.py
+│   │   │   │
+│   │   │   ├── risk_forecast/           #       ⚠️ Risk & Forecast Agent
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── agent.py            #           Risk scoring + forecast consumption
+│   │   │   │   └── tests/
+│   │   │   │       ├── __init__.py
+│   │   │   │       └── test_risk_forecast.py
+│   │   │   │
+│   │   │   ├── energy_resource/         #       🔋 Energy Resource Agent
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── agent.py            #           Battery/Solar/Wind/EV resource decisions
+│   │   │   │   └── tests/
+│   │   │   │       ├── __init__.py
+│   │   │   │       └── test_energy_resource.py
+│   │   │   │
+│   │   │   ├── demand_management/       #       🏠 Demand Management Agent
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── agent.py            #           Household/industry/flexible load decisions
+│   │   │   │   └── tests/
+│   │   │   │       ├── __init__.py
+│   │   │   │       └── test_demand_management.py
+│   │   │   │
+│   │   │   ├── market_trading/          #       💰 Market & Trading Agent
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── agent.py            #           P2P trading strategy + order generation
+│   │   │   │   └── tests/
+│   │   │   │       ├── __init__.py
+│   │   │   │       └── test_market_trading.py
+│   │   │   │
+│   │   │   └── critical_facility/       #       🏥 Critical Facility Agent
+│   │   │       ├── __init__.py
+│   │   │       ├── agent.py            #           Critical load protection logic
+│   │   │       └── tests/
+│   │   │           ├── __init__.py
+│   │   │           └── test_critical_facility.py
+│   │   │
+│   │   ├── scenarios/                   #    MODULE 7: Scenario Engine
+│   │   │   ├── __init__.py              #       (Crisis triggers + preset scenarios)
+│   │   │   ├── router.py               #       FastAPI routes: /api/scenarios
+│   │   │   ├── service.py
+│   │   │   ├── presets.py              #       Solar-50%+Demand+30%, grid outage, etc.
+│   │   │   ├── schemas.py
+│   │   │   └── tests/
+│   │   │       ├── __init__.py
+│   │   │       └── test_scenarios.py
+│   │   │
+│   │   ├── analytics/                   #    MODULE 8: Analytics & Baseline
+│   │   │   ├── __init__.py              #       (Metrics calculation + GridMind vs Baseline)
+│   │   │   ├── router.py               #       FastAPI routes: /api/analytics
+│   │   │   ├── service.py
+│   │   │   ├── metrics.py              #       Cost, demand, renewable, resilience metrics
+│   │   │   ├── baseline.py             #       Simple rule-based baseline engine
+│   │   │   ├── schemas.py
+│   │   │   └── tests/
+│   │   │       ├── __init__.py
+│   │   │       ├── test_metrics.py
+│   │   │       └── test_baseline.py
+│   │   │
+│   │   └── websocket/                   #    MODULE 9: Real-Time WebSocket Layer
+│   │       ├── __init__.py              #       (Live dashboard updates)
+│   │       ├── manager.py              #       WebSocket connection manager
+│   │       ├── handlers.py             #       /ws/microgrid, /ws/agents, /ws/market, etc.
+│   │       └── tests/
+│   │           ├── __init__.py
+│   │           └── test_websocket.py
+│   │
+│   │
+│   ├── main.py                          #    FastAPI app entry — registers all module routers
+│   ├── requirements.txt                 #    Python dependencies
+│   └── pytest.ini                       #    Test configuration
+│
+│
+├── frontend/                            # 🎨 SEPARATE — TO BE DONE LAST
+│   ├── (React / Next.js app)
+│   ├── src/
+│   │   ├── pages/
+│   │   │   ├── dashboard/              #       Overview page
+│   │   │   ├── karnataka/              #       Karnataka Grid screen
+│   │   │   ├── microgrid/              #       Microgrid screen
+│   │   │   ├── predictions/            #       Predictions & Risk screen
+│   │   │   ├── agents/                 #       AI Agents screen
+│   │   │   ├── market/                 #       Energy Market screen
+│   │   │   ├── scenarios/              #       Scenario Simulator screen
+│   │   │   ├── digital-twin/           #       Digital Twin (React Flow)
+│   │   │   ├── analytics/              #       Analytics + Baseline comparison
+│   │   │   ├── events/                 #       Event History screen
+│   │   │   └── settings/              #       Settings screen
+│   │   ├── components/                 #       Reusable UI components
+│   │   ├── hooks/                      #       Custom React hooks
+│   │   ├── services/                   #       API client functions
+│   │   └── styles/                     #       CSS / styling
+│   └── package.json
+│
+│
+├── data_storage/                        # 📁 Local file storage
+│   ├── datasets/                        #    Historical demand, solar, wind data (CSVs)
+│   └── trained_models/                  #    Saved ML model files (.pkl, .joblib)
+│
+│
+├── .env                                 #    Environment variables (secrets, API keys, modes)
+├── .env.example                         #    Template showing all required env vars
+├── .gitignore
+└── README.md
+
+
+
+
+Implement **Module 2 — ML Prediction Engine** for our existing **GridMind** project.
+
+### Goal
+
+Build forecasting for:
+
+* ⚡ Demand
+* ☀️ Solar generation
+* 🌬️ Wind generation
+
+using the **actual historical data from Module 1 / existing datasets**.
+
+### Requirements
+
+1. **Inspect the repo first**
+
+   * Understand Module 1 data sources, schemas, storage, and existing conventions.
+   * Reuse existing infrastructure; don't create duplicates.
+
+2. **Feature Engineering**
+
+   * Time features, lag features, rolling statistics.
+   * Weather features if available.
+   * Prevent future-data leakage.
+
+3. **Models**
+
+   * Use **XGBoost regression** for Demand, Solar, and Wind.
+   * Keep it simple and hackathon-friendly.
+   * No LSTM, Transformers, RL, GNN, cloud services, MLflow, or LLM-based forecasting.
+
+4. **Evaluation**
+
+   * Chronological **70/15/15 train/validation/test split**.
+   * Evaluate on unseen test data using **MAE, RMSE, MAPE** where appropriate.
+   * Never fabricate metrics.
+
+5. **Uncertainty**
+
+   * Use validation residuals to generate prediction intervals.
+   * Return `prediction`, `lower`, `upper`, and `confidence`.
+
+6. **Storage**
+
+   * Save trained models using the existing convention, preferably `data_storage/trained_models/`.
+
+7. **API**
+   Implement/reuse:
+
+   * `/api/forecast/demand`
+   * `/api/forecast/solar`
+   * `/api/forecast/wind`
+   * `/api/predictions`
+
+   Keep outputs structured for the future **Risk & Forecast Agent**.
+
+8. **Testing**
+   Add tests for feature engineering, all models, uncertainty, service/API, and edge cases.
+
+9. **Endpoint Verification — REQUIRED**
+   After implementation:
+
+   * Start the FastAPI backend.
+   * Verify **every Module 2 endpoint actually responds successfully**.
+   * Test valid and invalid inputs.
+   * Confirm response schemas and prediction values are correct/non-empty.
+   * Confirm models load correctly during API inference.
+   * Fix any endpoint, routing, schema, import, or integration errors found.
+   * Do not consider Module 2 complete until all endpoints have been tested successfully.
+
+### Integration
+
+`Module 1 data → Feature Engineering → ML Models → Predictions + Uncertainty → Risk & Forecast Agent`
+
+Do NOT implement agents, market, simulation, or Safety Layer inside Module 2.
+
+### Final Report
+
+After completing everything, report:
+
+* Files changed
+* Dataset used
+* Features used
+* Train/validation/test split
+* Model metrics
+* Uncertainty method
+* Tests passed
+* Endpoint test results
+* Any remaining limitations
+
+**Most important:** verify predictions against unseen real historical data and verify that **all API endpoints work end-to-end**. Do not claim success merely because the code runs.
+
+
+
+IMPORTANT--NOTE:ONLY WORK WITH MODULE 2 AND NAME THE FOLDER ml_forecasting DO NOT UNDER ANY CIRCUMSTANCES TOUCH ANY OTHER FOLDER 
