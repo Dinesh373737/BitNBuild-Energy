@@ -117,3 +117,7 @@ def system_status():
 #
 #  ... etc for each module
 # ══════════════════════════════════════════════════════════════════════
+
+# ── Module 6: Agents ─────────────────────────────────────────────────
+from backend.modules.agents.router import router as agents_router
+app.include_router(agents_router, prefix="/api", tags=["Agents"])
