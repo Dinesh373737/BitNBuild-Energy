@@ -38,3 +38,22 @@ async def websocket_agents(websocket: WebSocket):
 async def websocket_market(websocket: WebSocket):
     """Endpoint for real-time P2P energy market trades and clearing prices."""
     await _handle_websocket(websocket, "market")
+
+from pydantic import BaseModel
+
+class BroadcastPayload(BaseModel):
+    channel: str
+    message: dict
+
+@router.post("/api/test-broadcast", tags=["WebSockets"])
+async def trigger_broadcast(payload: BroadcastPayload):
+    """
+    Utility REST endpoint for testing. 
+    Send a POST request here with JSON to instantly broadcast it to all WebSocket clients!
+    """
+    await ws_manager.broadcast(payload.channel, payload.message)
+    return {
+        "status": "success",
+        "action": "broadcasted",
+        "channel": payload.channel
+    }

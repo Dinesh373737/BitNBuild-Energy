@@ -132,6 +132,15 @@ class Settings:
         "LOG_FILE", str(PROJECT_ROOT / "data_storage" / "gridmind.log")
     )
 
+    # ── Groq LLM (Module 6: Agents) ───────────────────────────────────────
+    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
+    COORDINATOR_MODEL: str = os.getenv("COORDINATOR_MODEL", "llama3-70b-8192")
+    RISK_MODEL: str = os.getenv("RISK_MODEL", "llama3-70b-8192")
+    RESOURCE_MODEL: str = os.getenv("RESOURCE_MODEL", "llama3-70b-8192")
+    DEMAND_MODEL: str = os.getenv("DEMAND_MODEL", "llama3-70b-8192")
+    MARKET_MODEL: str = os.getenv("MARKET_MODEL", "llama3-70b-8192")
+    CRITICAL_MODEL: str = os.getenv("CRITICAL_MODEL", "llama3-70b-8192")
+
     # ── Project Root (exposed for modules) ────────────────────────────────
     PROJECT_ROOT: Path = PROJECT_ROOT
 

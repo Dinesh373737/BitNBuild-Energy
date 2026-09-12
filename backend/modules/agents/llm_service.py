@@ -16,7 +16,6 @@ Usage:
     )
 """
 
-import os
 import json
 from typing import Any
 
@@ -27,19 +26,11 @@ except ModuleNotFoundError:  # pragma: no cover - dependency is optional at runt
 
 from backend.common.logger import get_module_logger
 from backend.common.schemas.enums import AgentType
+from backend.common.config import settings
 
 log = get_module_logger("agents.llm_service")
 
 # ── Per-agent model environment variable mapping ──────────────────────────
-_MODEL_ENV_MAP: dict[AgentType, str] = {
-    AgentType.COORDINATOR: "COORDINATOR_MODEL",
-    AgentType.RISK_FORECAST: "RISK_MODEL",
-    AgentType.ENERGY_RESOURCE: "RESOURCE_MODEL",
-    AgentType.DEMAND_MANAGEMENT: "DEMAND_MODEL",
-    AgentType.MARKET_TRADING: "MARKET_MODEL",
-    AgentType.CRITICAL_FACILITY: "CRITICAL_MODEL",
-}
-
 _DEFAULT_MODEL = "gpt-oss-120b"
 
 
@@ -47,13 +38,16 @@ class LLMService:
     """Centralised Groq LLM wrapper used by all agents."""
 
     def __init__(self):
-        self._api_key: str = os.getenv("GROQ_API_KEY", "")
+        self._api_key: str = settings.GROQ_API_KEY
         self._client: AsyncGroq | None = None
-        self._models: dict[AgentType, str] = {}
-
-        # Resolve per-agent model names
-        for agent_type, env_key in _MODEL_ENV_MAP.items():
-            self._models[agent_type] = os.getenv(env_key, _DEFAULT_MODEL)
+        self._models: dict[AgentType, str] = {
+            AgentType.COORDINATOR: settings.COORDINATOR_MODEL,
+            AgentType.RISK_FORECAST: settings.RISK_MODEL,
+            AgentType.ENERGY_RESOURCE: settings.RESOURCE_MODEL,
+            AgentType.DEMAND_MANAGEMENT: settings.DEMAND_MODEL,
+            AgentType.MARKET_TRADING: settings.MARKET_MODEL,
+            AgentType.CRITICAL_FACILITY: settings.CRITICAL_MODEL,
+        }
 
         if self._api_key and AsyncGroq is not None:
             self._client = AsyncGroq(api_key=self._api_key)

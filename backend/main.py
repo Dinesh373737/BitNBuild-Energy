@@ -124,3 +124,31 @@ from backend.modules.safety.router import router as safety_router
 
 app.include_router(agents_router, prefix="/api", tags=["Agents"])
 app.include_router(safety_router, prefix="/api", tags=["Safety"])
+
+# ── Module 1: Data Connectors ─────────────────────────────────────────
+from backend.modules.data_connectors.router import router as data_router
+app.include_router(data_router)
+
+# ── Module 2: ML Forecasting (Reserved - To be integrated later) ───────
+# from backend.modules.ml_forecasting.router import router as forecast_router
+# app.include_router(forecast_router, prefix="/api", tags=["Forecasting"])
+
+# ── Module 3: Simulation Engine ───────────────────────────────────────
+from backend.modules.simulation.router import router as sim_router
+app.include_router(sim_router, prefix="/api", tags=["Simulation"])
+
+# ── Module 4: Market Engine ───────────────────────────────────────────
+from backend.modules.market_engine.router import router as market_router
+app.include_router(market_router)
+
+# ── Module 7: Scenarios ───────────────────────────────────────────────
+from backend.modules.scenarios.router import router as scenarios_router
+app.include_router(scenarios_router)
+
+# ── Module 8: Analytics ───────────────────────────────────────────────
+from backend.modules.analytics.router import router as analytics_router
+app.include_router(analytics_router, prefix="/api")
+
+# ── Module 9: WebSockets ──────────────────────────────────────────────
+from backend.modules.websocket.handlers import router as websocket_router
+app.include_router(websocket_router)
