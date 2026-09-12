@@ -129,9 +129,9 @@ app.include_router(safety_router, prefix="/api", tags=["Safety"])
 from backend.modules.data_connectors.router import router as data_router
 app.include_router(data_router)
 
-# ── Module 2: ML Forecasting (Reserved - To be integrated later) ───────
-# from backend.modules.ml_forecasting.router import router as forecast_router
-# app.include_router(forecast_router, prefix="/api", tags=["Forecasting"])
+# ── Module 2: ML Forecasting ──────────────────────────────────────────
+from backend.modules.ml_forecasting.router import router as forecast_router
+app.include_router(forecast_router)
 
 # ── Module 3: Simulation Engine ───────────────────────────────────────
 from backend.modules.simulation.router import router as sim_router
