@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 from backend.common.schemas.enums import AgentType, AgentStatus, RiskLevel
 from backend.common.schemas.messages import AgentDecision, CoordinationResult
 from backend.common.schemas.microgrid_state import MicrogridState
+from backend.modules.safety.schemas import SafetyValidationResult
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -61,6 +62,7 @@ class RunAgentsResponse(BaseModel):
     success: bool = True
     agent_results: list[AgentResult] = Field(default_factory=list)
     coordination: CoordinationResult | None = None
+    safety_result: SafetyValidationResult | None = None
     risk_level: str = "low"
     risk_score: float = 0.0
     total_decisions: int = 0
