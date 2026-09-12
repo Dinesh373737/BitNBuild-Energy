@@ -18,6 +18,7 @@ from backend.common.logger import get_module_logger
 from backend.common.schemas.enums import AgentType
 from backend.common.schemas.microgrid_state import MicrogridState
 from backend.common.schemas.messages import CoordinationResult
+from backend.modules.safety.service import SafetyService
 
 from backend.modules.agents.schemas import (
     AgentStatusItem,
@@ -51,6 +52,7 @@ demand_agent = DemandManagementAgent()
 market_agent = MarketTradingAgent()
 critical_agent = CriticalFacilityAgent()
 coordinator_agent = CoordinatorAgent()
+safety_service = SafetyService()
 
 _AGENTS = {
     AgentType.RISK_FORECAST: risk_agent,
@@ -172,21 +174,37 @@ async def run_agent_pipeline(request: RunAgentsRequest):
             reasoning=coordinator_agent._last_reason,
         ))
 
+        safe_validation = safety_service.validate(state, approved)
+        approved = safe_validation.approved_decisions
+        rejected = safe_validation.rejected_decisions
+        modified = safe_validation.modified_decisions
+
+        if coord_result is not None:
+            coord_result.approved_decisions = approved
+            coord_result.rejected_decisions = rejected
+            coord_result.modified_decisions = modified
+            coord_result.resolution_reason = (
+                coord_result.resolution_reason
+                + f" Safety validation: {safe_validation.overall_status.value}."
+            )
+
         log.info(
             f"Pipeline complete: {len(all_decisions)} total decisions, "
             f"{len(approved)} approved, "
-            f"{len(coord_result.rejected_decisions) if coord_result else 0} rejected"
+            f"{len(rejected)} rejected, "
+            f"{len(modified)} modified"
         )
 
         return RunAgentsResponse(
             success=True,
             agent_results=agent_results,
             coordination=coord_result,
+            safety_result=safe_validation,
             risk_level=risk_info.get("risk_level", "low"),
             risk_score=risk_info.get("risk_score", 0),
             total_decisions=len(all_decisions),
             approved_decisions=len(approved),
-            rejected_decisions=len(coord_result.rejected_decisions) if coord_result else 0,
+            rejected_decisions=len(rejected),
         )
 
     except Exception as e:

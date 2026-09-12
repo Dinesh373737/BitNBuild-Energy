@@ -120,4 +120,7 @@ def system_status():
 
 # ── Module 6: Agents ─────────────────────────────────────────────────
 from backend.modules.agents.router import router as agents_router
+from backend.modules.safety.router import router as safety_router
+
 app.include_router(agents_router, prefix="/api", tags=["Agents"])
+app.include_router(safety_router, prefix="/api", tags=["Safety"])

@@ -20,7 +20,11 @@ import os
 import json
 from typing import Any
 
-from groq import AsyncGroq
+try:
+    from groq import AsyncGroq
+except ModuleNotFoundError:  # pragma: no cover - dependency is optional at runtime
+    AsyncGroq = None  # type: ignore[assignment]
+
 from backend.common.logger import get_module_logger
 from backend.common.schemas.enums import AgentType
 
@@ -51,13 +55,18 @@ class LLMService:
         for agent_type, env_key in _MODEL_ENV_MAP.items():
             self._models[agent_type] = os.getenv(env_key, _DEFAULT_MODEL)
 
-        if self._api_key:
+        if self._api_key and AsyncGroq is not None:
             self._client = AsyncGroq(api_key=self._api_key)
             log.info("Groq LLM service initialised")
         else:
-            log.warning(
-                "GROQ_API_KEY not set — agents will use deterministic fallback only"
-            )
+            if not self._api_key:
+                log.warning(
+                    "GROQ_API_KEY not set — agents will use deterministic fallback only"
+                )
+            else:
+                log.warning(
+                    "Groq package is not installed — agents will use deterministic fallback only"
+                )
 
     # ── Public API ────────────────────────────────────────────────────────
 
